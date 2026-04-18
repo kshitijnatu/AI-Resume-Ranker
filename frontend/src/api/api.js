@@ -28,6 +28,23 @@ export const rankApplications = async (candidateFiles, jobDescriptionFile) => {
     return response.data;
 };
 
+async function readStreamToString(stream) {
+    if (!stream || typeof stream.getReader !== 'function') {
+        return '';
+    }
+    const reader = stream.getReader();
+    const decoder = new TextDecoder();
+    let out = '';
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+            break;
+        }
+        out += decoder.decode(value, { stream: true });
+    }
+    return out + decoder.decode();
+}
+
 export const streamRankApplications = async (
     candidateFiles,
     jobDescriptionFile,
@@ -39,27 +56,37 @@ export const streamRankApplications = async (
         formData.append('job_description_file', jobDescriptionFile);
     }
 
-    const response = await fetch('http://localhost:8000/rank-applications/stream', {
-        method: 'POST',
-        body: formData,
+    const response = await api.post('/rank-applications/stream', formData, {
+        adapter: 'fetch',
+        responseType: 'stream',
+        validateStatus: () => true,
     });
 
-    if (!response.ok) {
+    if (response.status < 200 || response.status >= 300) {
+        const raw = await readStreamToString(response.data);
         let message = 'Streaming request failed.';
         try {
-            const errorBody = await response.json();
-            message = errorBody?.detail ?? message;
+            const errorBody = JSON.parse(raw);
+            const detail = errorBody?.detail;
+            if (detail != null) {
+                message = typeof detail === 'string' ? detail : JSON.stringify(detail);
+            } else if (raw) {
+                message = raw;
+            }
         } catch {
-            // Keep default message when response is not JSON.
+            if (raw) {
+                message = raw;
+            }
         }
         throw new Error(message);
     }
 
-    if (!response.body) {
+    const body = response.data;
+    if (!body || typeof body.getReader !== 'function') {
         throw new Error('Streaming response body is not available.');
     }
 
-    const reader = response.body.getReader();
+    const reader = body.getReader();
     const decoder = new TextDecoder();
 
     while (true) {
