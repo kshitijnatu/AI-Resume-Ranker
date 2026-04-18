@@ -4,29 +4,29 @@ const api = axios.create({
     baseURL: 'http://localhost:8000',
 });
 
-export const uploadFile = async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const response = await api.post('/upload-file', formData);
-    return response.data;
-};
+// export const uploadFile = async (file) => {
+//     const formData = new FormData();
+//     formData.append('file', file);
+//     const response = await api.post('/upload-file', formData);
+//     return response.data;
+// };
 
-export const uploadFiles = async (files) => {
-    const formData = new FormData();
-    files.forEach(file => formData.append('files', file));
-    const response = await api.post('/upload-files', formData);
-    return response.data;
-};
+// export const uploadFiles = async (files) => {
+//     const formData = new FormData();
+//     files.forEach(file => formData.append('files', file));
+//     const response = await api.post('/upload-files', formData);
+//     return response.data;
+// };
 
-export const rankApplications = async (candidateFiles, jobDescriptionFile) => {
-    const formData = new FormData();
-    candidateFiles.forEach((file) => formData.append('files', file));
-    if (jobDescriptionFile) {
-        formData.append('job_description_file', jobDescriptionFile);
-    }
-    const response = await api.post('/rank-applications', formData);
-    return response.data;
-};
+// export const rankApplications = async (candidateFiles, jobDescriptionFile) => {
+//     const formData = new FormData();
+//     candidateFiles.forEach((file) => formData.append('files', file));
+//     if (jobDescriptionFile) {
+//         formData.append('job_description_file', jobDescriptionFile);
+//     }
+//     const response = await api.post('/rank-applications', formData);
+//     return response.data;
+// };
 
 async function readStreamToString(stream) {
     if (!stream || typeof stream.getReader !== 'function') {
